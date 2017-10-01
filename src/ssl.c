@@ -1,6 +1,5 @@
 #include "vpn-ws.h"
 
-#ifndef __WIN32__
 static int _vpn_ws_ssl_wait_read(fd) {
         fd_set rset;
         FD_ZERO(&rset);
@@ -22,8 +21,6 @@ static int _vpn_ws_ssl_wait_write(fd) {
         }
         return 0;
 }
-#endif
-
 
 #if defined(__APPLE__)
 
@@ -94,7 +91,6 @@ void *vpn_ws_ssl_handshake(vpn_ws_peer *peer, char *sni, char *key, char *crt) {
 		vpn_ws_log("vpn_ws_ssl_handshake()/SSLSetIOFuncs(): %d", err);
 		goto error;
 	}
-
 
 	err = SSLSetConnection(ctx, peer);
 	if (err != noErr) {
@@ -189,28 +185,6 @@ void vpn_ws_ssl_close(void *ctx) {
 	CFRelease(ctx);
 }
 
-#elif defined(__WIN32__)
-#include <schannel.h>
-#include <security.h>
-#include <sspi.h>
-void *vpn_ws_ssl_handshake(vpn_ws_peer *peer, char *sni, char *key, char *crt) {
-	PSecurityFunctionTable sec = InitSecurityInterfaceA();
-	vpn_ws_log("%p\n", sec);
-	return sec;
-}
-
-ssize_t vpn_ws_ssl_read(void *ctx, uint8_t *buf, uint64_t len) {
-	return -1;
-}
-
-int vpn_ws_ssl_write(void *ctx, uint8_t *buf, uint64_t len) {
-	return -1;
-}
-
-void vpn_ws_ssl_close(void *ctx) {
-}
-
-
 #else
 
 // use openssl
@@ -272,7 +246,6 @@ void *vpn_ws_ssl_handshake(vpn_ws_peer *peer, char *sni, char *key, char *crt) {
 			}
 		}
 	}
-
 
 	SSL *ssl = SSL_new(ssl_ctx);
 	if (!ssl) {

@@ -18,12 +18,7 @@ vpn_ws_fd vpn_ws_bind_ipv6(char *name) {
         }
         else {
 		char *addr = vpn_ws_strndup(name+1, strlen(name+1) -1);
-#ifndef __WIN32__
 		inet_pton(AF_INET6, addr, sin6.sin6_addr.s6_addr);
-#else
-		int sin6_len = sizeof(struct sockaddr_in6);
-		WSAStringToAddress(addr, AF_INET6, NULL, (LPSOCKADDR) &sin6, &sin6_len);
-#endif
 		free(addr);
         }
 
@@ -108,11 +103,6 @@ vpn_ws_fd vpn_ws_bind_ipv4(char *name) {
 
 vpn_ws_fd vpn_ws_bind_unix(char *name) {
 
-#ifdef __WIN32__
-	vpn_ws_log("UNIX domain sockets not supported on windows\n");
-	return NULL;
-#else
-
 	// ignore unlink error
 	unlink(name);
 
@@ -146,7 +136,6 @@ vpn_ws_fd vpn_ws_bind_unix(char *name) {
 	}
 
 	return fd;
-#endif
 }
 
 /*
@@ -172,7 +161,6 @@ void vpn_ws_peer_create(int queue, vpn_ws_fd client_fd, uint8_t *mac) {
 
         // create a new peer structure
         // we use >= so we can lazily allocate memory even if fd is 0
-#ifndef __WIN32__
         if (client_fd >= vpn_ws_conf.peers_n) {
                 void *tmp = realloc(vpn_ws_conf.peers, sizeof(vpn_ws_peer *) * (client_fd+1));
                 if (!tmp) {
@@ -185,9 +173,6 @@ void vpn_ws_peer_create(int queue, vpn_ws_fd client_fd, uint8_t *mac) {
                 vpn_ws_conf.peers_n = client_fd+1;
                 vpn_ws_conf.peers = (vpn_ws_peer **) tmp;
         }
-#else
-// TODO find a solution for windows
-#endif
 
         vpn_ws_peer *peer = vpn_ws_calloc(sizeof(vpn_ws_peer));
         if (!peer) {
@@ -207,26 +192,15 @@ void vpn_ws_peer_create(int queue, vpn_ws_fd client_fd, uint8_t *mac) {
 		peer->raw = 1;
 	}
 
-#ifndef __WIN32__
         vpn_ws_conf.peers[client_fd] = peer;
-#else
-// TODO find a solution for windows
-#endif
 
 }
 
 void vpn_ws_peer_accept(int queue, int fd) {
-#ifndef __WIN32__
 	struct sockaddr_un s_un;
         memset(&s_un, 0, sizeof(struct sockaddr_un));
 
 	socklen_t s_len = sizeof(struct sockaddr_un);
-#else
-	struct sockaddr_in6 s_un;
-        memset(&s_un, 0, sizeof(struct sockaddr_in6));
-
-	socklen_t s_len = sizeof(struct sockaddr_in6);
-#endif
 
 	int client_fd = accept(fd, (struct sockaddr *) &s_un, &s_len);
 	if (client_fd < 0) {
@@ -234,9 +208,5 @@ void vpn_ws_peer_accept(int queue, int fd) {
 		return;
 	}
 
-#ifndef __WIN32__
 	vpn_ws_peer_create(queue, client_fd, NULL);
-#else
-	// TODO find a solution for windows
-#endif
 }

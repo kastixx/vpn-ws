@@ -1,13 +1,6 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <fcntl.h>
-#ifdef __WIN32__
-#include "winsock2.h"
-#include "ws2tcpip.h"
-#include "ws2spi.h"
-#define EWOULDBLOCK EAGAIN
-#define EINPROGRESS EAGAIN
-#else
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -16,7 +9,6 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
-#endif
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
@@ -30,7 +22,6 @@
 #include <ctype.h>
 #include "sha1.h"
 
-#ifndef __WIN32__
 #include <grp.h>
 #include <pwd.h>
 typedef int vpn_ws_fd;
@@ -39,17 +30,6 @@ typedef int vpn_ws_fd;
 #define vpn_ws_send(x, y, z, w) ssize_t w = write(x, y, z)
 #define vpn_ws_recv(x, y, z, r) ssize_t r = read(x, y, z)
 #define vpn_ws_socket_cast(x) x
-#else
-typedef HANDLE vpn_ws_fd;
-#define sleep(x) Sleep(x * 1000);
-#define close(x) CloseHandle(x)
-#define vpn_ws_invalid_fd NULL
-#define vpn_ws_is_invalid_fd(x) !x
-#define vpn_ws_send(x, y, z, w) ssize_t w = -1; if (!WriteFile(x, y, z, (LPDWORD) &w, 0)) { w = -1; }
-#define vpn_ws_recv(x, y, z, r) ssize_t r = -1; if (!ReadFile(x, y, z, (LPDWORD) &r, 0)) { r = -1; }
-#define vpn_ws_socket_cast(x) (SOCKET)x
-#endif
-
 
 struct vpn_ws_var {
 	char *key;

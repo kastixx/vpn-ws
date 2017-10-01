@@ -99,7 +99,6 @@ int64_t vpn_ws_handshake(int queue, vpn_ws_peer *peer) {
 		}
 	}
 
-
 	// control request ?
 	if (modifier1 == 1) {
 		peer->ctrl = 1;
@@ -110,7 +109,6 @@ int64_t vpn_ws_handshake(int queue, vpn_ws_peer *peer) {
 	uint16_t ws_key_len = 0;
 	char *ws_key = vpn_ws_peer_get_var(peer, "HTTP_SEC_WEBSOCKET_KEY", 22, &ws_key_len);
 	if (!ws_key) return -1;
-
 
 	// check if the X-vpn-ws-MAC header is available
 	uint16_t ws_mac_len = 0;
@@ -193,12 +191,7 @@ static int json_append(char *json, uint64_t *pos, uint64_t *len, char *buf, uint
 
 static int json_append_num(char *json, uint64_t *pos, uint64_t *len, int64_t n) {
 	char buf[30];	
-#ifndef __WIN32__
 	int ret = snprintf(buf, 30, "%lld", (unsigned long long) n);
-#else
-	// TODO fix it
-	int ret = snprintf(buf, 30, "%d", (int) n);
-#endif
 	if (ret <= 0 || ret > 30) return -1;
 	return json_append(json, pos, len, buf, ret);
 }

@@ -21,12 +21,10 @@ int main(int argc, char *argv[]) {
 
 	setbuf(stdout, NULL);
 
-#ifndef __WIN32__
 	sigset_t sset;
 	sigemptyset(&sset);
 	sigaddset(&sset, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &sset, NULL);
-#endif
 
 	for(;;) {
 		int c = getopt_long(argc, argv, "", vpn_ws_options, &option_index);
@@ -99,10 +97,7 @@ int main(int argc, char *argv[]) {
 			vpn_ws_exit(1);
 		}
 		if (vpn_ws_conf.bridge) {
-#ifndef __WIN32__
-
 			vpn_ws_conf.peers[tuntap_fd]->bridge = 1;
-#endif
 		}
 	}
 
@@ -112,7 +107,6 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-#ifndef __WIN32__
 	// drop privileges
 	if (vpn_ws_conf.gid) {
 		gid_t gid = 0;
@@ -163,12 +157,10 @@ int main(int argc, char *argv[]) {
                         vpn_ws_exit(1);
                 }
         }
-#endif
 
 	if (vpn_ws_event_add_read(event_queue, server_fd)) {
 		vpn_ws_exit(1);
 	}
-
 
 	void *events = vpn_ws_event_events(64);
 	if (!events) {
@@ -182,7 +174,6 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 
-#ifndef __WIN32__
 		int i;
 		for(i=0;i<ret;i++) {
 			int fd = vpn_ws_event_fd(events, i);
@@ -195,8 +186,6 @@ int main(int argc, char *argv[]) {
 			// on peer modification, exit the cycle
 			if (vpn_ws_manage_fd(event_queue, fd)) break;
 		}
-#else
-#endif
 	}
 
 	return 0;

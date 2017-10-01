@@ -114,16 +114,11 @@ int vpn_ws_manage_fd(int queue, vpn_ws_fd fd) {
 	int dirty = 0;
 
 	// check if the fd can be in the peers list
-#ifndef __WIN32__
 	if (fd > vpn_ws_conf.peers_n) {
 		return -1;
 	}
 	// first of all find a valid peer
 	vpn_ws_peer *peer = vpn_ws_conf.peers[fd];
-#else
-	// TODO find a solution for windows
-	vpn_ws_peer *peer = NULL;
-#endif
 	if (!peer) {
 		vpn_ws_log("[BUG] fd %d not found\n", fd);
 		close(fd);
