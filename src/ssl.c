@@ -1,6 +1,6 @@
 #include "vpn-ws.h"
 
-static int _vpn_ws_ssl_wait_read(fd) {
+static int _vpn_ws_ssl_wait_read(int fd) {
         fd_set rset;
         FD_ZERO(&rset);
         FD_SET(fd, &rset);
@@ -11,7 +11,7 @@ static int _vpn_ws_ssl_wait_read(fd) {
         return 0;
 }
 
-static int _vpn_ws_ssl_wait_write(fd) {
+static int _vpn_ws_ssl_wait_write(int fd) {
         fd_set wset;
         FD_ZERO(&wset);
         FD_SET(fd, &wset);
