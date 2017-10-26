@@ -1,6 +1,7 @@
+#include "config-event.h"
 #include "vpn-ws.h"
 
-#if defined(__linux__)
+#if HAVE_EPOLL
 
 #include <sys/epoll.h>
 
@@ -67,7 +68,7 @@ int vpn_ws_event_fd(void *events, int i) {
 	return epoll_events[i].data.fd;
 }
 
-#elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
+#elif HAVE_KQUEUE
 
 #include <sys/event.h>
 
