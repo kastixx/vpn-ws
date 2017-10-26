@@ -107,7 +107,7 @@ struct vpn_ws_config {
 	uint8_t tuntap_mac[6];
 
 	// this is the highest fd used
-	uint64_t peers_n;
+	int64_t peers_n;
 	// this memory is dynamically increased
 	vpn_ws_peer **peers;
 

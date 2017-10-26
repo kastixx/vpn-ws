@@ -2,34 +2,34 @@
 
 int vpn_ws_continue_write(vpn_ws_peer *peer) {
 	vpn_ws_send(peer->fd, peer->write_buf, peer->write_pos, wlen);
-        if (wlen < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS) {
-                        return 0;
-                }
-                return -1;
-        }
-        if (wlen == 0) return -1;
+	if (wlen < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS) {
+			return 0;
+		}
+		return -1;
+	}
+	if (wlen == 0) return -1;
 
 	peer->tx+=wlen;
 
-        memmove(peer->write_buf, peer->write_buf + wlen, peer->write_pos - wlen);
-        peer->write_pos -= wlen;
-        // if the whole buffer has been written, signal it
-        if (peer->write_pos == 0) return 1;
-        return 0;
+	memmove(peer->write_buf, peer->write_buf + wlen, peer->write_pos - wlen);
+	peer->write_pos -= wlen;
+	// if the whole buffer has been written, signal it
+	if (peer->write_pos == 0) return 1;
+	return 0;
 }
 
 int vpn_ws_write(vpn_ws_peer *peer, uint8_t *buf, uint64_t amount) {
 	uint64_t available = peer->write_len - peer->write_pos;
 	if (available < amount) {
-                peer->write_len += amount;
-                void *tmp = realloc(peer->write_buf, peer->write_len);
-                if (!tmp) {
-                        vpn_ws_error("vpn_ws_write()/realloc()");
-                        return -1;
-                }
-                peer->write_buf = tmp;
-        }
+		peer->write_len += amount;
+		void *tmp = realloc(peer->write_buf, peer->write_len);
+		if (!tmp) {
+			vpn_ws_error("vpn_ws_write()/realloc()");
+			return -1;
+		}
+		peer->write_buf = tmp;
+	}
 
 	memcpy(peer->write_buf + peer->write_pos, buf, amount);
 	peer->write_pos += amount;
@@ -64,22 +64,22 @@ int vpn_ws_write_websocket(vpn_ws_peer *peer, uint8_t *buf, uint64_t amount) {
 		header[9] = (uint8_t) (amount & 0xff);
 	}
 
-        uint64_t available = peer->write_len - peer->write_pos;
-        if (available < (amount+header_size)) {
-                peer->write_len += amount + header_size;
-                void *tmp = realloc(peer->write_buf, peer->write_len);
-                if (!tmp) {
-                        vpn_ws_error("vpn_ws_write_websocket()/realloc()");
-                        return -1;
-                }
-                peer->write_buf = tmp;
-        }
+	uint64_t available = peer->write_len - peer->write_pos;
+	if (available < (amount+header_size)) {
+		peer->write_len += amount + header_size;
+		void *tmp = realloc(peer->write_buf, peer->write_len);
+		if (!tmp) {
+			vpn_ws_error("vpn_ws_write_websocket()/realloc()");
+			return -1;
+		}
+		peer->write_buf = tmp;
+	}
 
 	memcpy(peer->write_buf + peer->write_pos, header, header_size);
-        memcpy(peer->write_buf + peer->write_pos +header_size, buf, amount);
-        peer->write_pos += amount + header_size;
+	memcpy(peer->write_buf + peer->write_pos +header_size, buf, amount);
+	peer->write_pos += amount + header_size;
 
-        return vpn_ws_continue_write(peer);
+	return vpn_ws_continue_write(peer);
 }
 
 int vpn_ws_read(vpn_ws_peer *peer, uint64_t amount) {
@@ -214,7 +214,7 @@ again:
 	if (peer->has_mask) {
 		uint16_t i;
 		for (i=0;i<ws_len;i++) {
-			 ws[i] = ws[i] ^ peer->mask[i % 4];	
+			ws[i] = ws[i] ^ peer->mask[i % 4];
 		}
 		// move the header and clear the mask bit
 		memmove(peer->buf+4, peer->buf, ws_header - 4);	
@@ -264,8 +264,7 @@ parsed:
 	// attempt to call write for each one
 	if ((!vpn_ws_conf.no_multicast && vpn_ws_mac_is_multicast(mac)) || (!vpn_ws_conf.no_broadcast && vpn_ws_mac_is_broadcast(mac))) {
 		// iterate over all peers and write to them
-		uint64_t i;
-		for(i=0;i<vpn_ws_conf.peers_n;i++) {
+		for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
 			vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
 			if (!b_peer) continue;
 			// myself ?
@@ -312,38 +311,37 @@ parsed:
 		b_peer = vpn_ws_peer_by_bridge_mac(mac);
 		// if not found forward to all bridget peers
 		if (!b_peer) {
-			uint64_t i;
-                	for(i=0;i<vpn_ws_conf.peers_n;i++) {
-                        	vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
-                        	if (!b_peer) continue;
-                        	// myself ?
-                        	if (b_peer->fd == peer->fd) continue;
-                        	// already accounted ?
-                        	if (!b_peer->mac_collected) continue;	
+			for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
+				vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
+				if (!b_peer) continue;
+				// myself ?
+				if (b_peer->fd == peer->fd) continue;
+				// already accounted ?
+				if (!b_peer->mac_collected) continue;
 				// is a bridge ?
 				if (!b_peer->bridge) continue;
 				int wret = -1;
-        			if (b_peer->raw && !peer->raw) {
-                			wret = vpn_ws_write(b_peer, peer->buf+ws_header, ws_ret-ws_header);
-        			}
-        			else if (!b_peer->raw && peer->raw) {
-                			wret = vpn_ws_write_websocket(b_peer, data, data_len);
-        			}
-        			else {
-                			wret = vpn_ws_write(b_peer, data, data_len);
-        			}
-        			if (wret < 0) {
-                			vpn_ws_peer_destroy(b_peer);
-                			dirty = 1;
-        			}
-        			else if (wret == 0) {
-                			dirty = 1;
-                			if (!b_peer->is_writing) {
-                        			if (vpn_ws_event_read_to_write(queue, b_peer->fd)) {
-                                			vpn_ws_peer_destroy(b_peer);
+				if (b_peer->raw && !peer->raw) {
+					wret = vpn_ws_write(b_peer, peer->buf+ws_header, ws_ret-ws_header);
+				}
+				else if (!b_peer->raw && peer->raw) {
+					wret = vpn_ws_write_websocket(b_peer, data, data_len);
+				}
+				else {
+					wret = vpn_ws_write(b_peer, data, data_len);
+				}
+				if (wret < 0) {
+					vpn_ws_peer_destroy(b_peer);
+					dirty = 1;
+				}
+				else if (wret == 0) {
+					dirty = 1;
+					if (!b_peer->is_writing) {
+						if (vpn_ws_event_read_to_write(queue, b_peer->fd)) {
+							vpn_ws_peer_destroy(b_peer);
 						}
-                        		}
-                		}
+					}
+				}
 			}
 			goto decapitate;
 		}
@@ -360,8 +358,8 @@ parsed:
 		wret = vpn_ws_write(b_peer, data, data_len);
 	}
 	if (wret < 0) {
-        	vpn_ws_peer_destroy(b_peer);
-                dirty = 1;
+		vpn_ws_peer_destroy(b_peer);
+		dirty = 1;
 	}
 	else if (wret == 0) {
 		dirty = 1;

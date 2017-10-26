@@ -51,8 +51,7 @@ int vpn_ws_mac_is_multicast(uint8_t *buf) {
 }
 
 vpn_ws_peer *vpn_ws_peer_by_mac(uint8_t *buf) {
-	uint64_t i;
-	for(i=0;i<vpn_ws_conf.peers_n;i++) {
+	for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
         	vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
                 if (!b_peer) continue;
 		if (!b_peer->mac_collected) continue;
@@ -63,8 +62,7 @@ vpn_ws_peer *vpn_ws_peer_by_mac(uint8_t *buf) {
 }
 
 vpn_ws_peer *vpn_ws_peer_by_bridge_mac(uint8_t *buf) {
-        uint64_t i;
-        for(i=0;i<vpn_ws_conf.peers_n;i++) {
+        for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
                 vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
                 if (!b_peer) continue;
                 if (!b_peer->mac_collected) continue;

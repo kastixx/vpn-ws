@@ -7,11 +7,13 @@
 */
 
 ssize_t vpn_ws_uwsgi_parse(vpn_ws_peer *peer, uint8_t *modifier1, uint8_t *modifier2) {
-	if (peer->pos < 4) return 0;
+	if (peer->pos < 4)
+		return 0;
 	*modifier1 = peer->buf[0];
 	*modifier2 = peer->buf[3];
 	uint16_t uwsgi_pktsize = vpn_ws_le16(peer->buf+1);
-	if (peer->pos < (4 + uwsgi_pktsize)) return 0;
+	if (peer->pos < (uwsgi_pktsize + 4))
+		return 0;
 
 	uint8_t *pkt = peer->buf+4;
 
@@ -319,9 +321,8 @@ int64_t vpn_ws_ctrl_json(int queue, vpn_ws_peer *peer) {
 
 	if (json_append(json, &json_pos, &json_len, "{\"status\":\"ok\",\"peers\":[", 24)) goto end;
 
-	uint64_t i;
 	uint8_t found = 0;
-        for(i=0;i<vpn_ws_conf.peers_n;i++) {
+        for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
                 vpn_ws_peer *b_peer = vpn_ws_conf.peers[i];
 
                 if (!b_peer) continue;

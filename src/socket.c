@@ -169,7 +169,7 @@ void vpn_ws_peer_create(int queue, vpn_ws_fd client_fd, uint8_t *mac) {
                         return;
                 }
                 uint64_t delta = (client_fd+1) - vpn_ws_conf.peers_n;
-                memset(tmp + (sizeof(vpn_ws_peer *) * vpn_ws_conf.peers_n), 0, sizeof(vpn_ws_peer *) * delta);
+                memset((vpn_ws_peer *)tmp + (sizeof(vpn_ws_peer *) * vpn_ws_conf.peers_n), 0, sizeof(vpn_ws_peer *) * delta);
                 vpn_ws_conf.peers_n = client_fd+1;
                 vpn_ws_conf.peers = (vpn_ws_peer **) tmp;
         }
