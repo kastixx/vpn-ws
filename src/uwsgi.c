@@ -188,24 +188,24 @@ int64_t vpn_ws_handshake(int queue, vpn_ws_peer *peer) {
 	return rlen;
 }
 
-static int json_append(char *json, uint64_t *pos, uint64_t *len, char *buf, uint64_t buf_len) {
+static int json_append(char **json, uint64_t *pos, uint64_t *len, char *buf, uint64_t buf_len) {
 	if (*pos + buf_len > *len) {
 		uint64_t delta = (*pos + buf_len) - *len;
 		if (delta < 8192) delta = 8192;
 		*len += delta;
-		char *tmp = realloc(json, *len);
+		char *tmp = realloc(*json, *len);
 		if (!tmp) {
-			vpn_ws_error("json_append()/realloc()");
+			vpn_ws_error("json_append(&)/realloc()");
 			return -1;
 		}
-		json = tmp;
+		*json = tmp;
 	}
-	memcpy(json+*pos, buf, buf_len);
+	memcpy(*json+*pos, buf, buf_len);
 	*pos += buf_len;
 	return 0;
 }
 
-static int json_append_num(char *json, uint64_t *pos, uint64_t *len, int64_t n) {
+static int json_append_num(char **json, uint64_t *pos, uint64_t *len, int64_t n) {
 	char buf[30];	
 	int ret = snprintf(buf, 30, "%lld", (unsigned long long) n);
 	if (ret <= 0 || ret > 30)
@@ -213,7 +213,7 @@ static int json_append_num(char *json, uint64_t *pos, uint64_t *len, int64_t n) 
 	return json_append(json, pos, len, buf, ret);
 }
 
-static int json_append_mac(char *json, uint64_t *pos, uint64_t *len, uint8_t *mac) {
+static int json_append_mac(char **json, uint64_t *pos, uint64_t *len, uint8_t *mac) {
 	char buf[18];
 	int ret = snprintf(buf, 18, "%02X:%02X:%02X:%02X:%02X:%02X",
 			mac[0],
@@ -231,27 +231,27 @@ static int json_append_json(char *json, uint64_t *pos, uint64_t *len, char *buf,
 	uint64_t i;
 	for(i=0;i<buf_len;i++) {
 		if (buf[i] == '\t') {
-			if (json_append(json, pos, len, "\\t", 2))
+			if (json_append(&json, pos, len, "\\t", 2))
 				return -1;
 		}
 		else if (buf[i] == '\n') {
-			if (json_append(json, pos, len, "\\n", 2))
+			if (json_append(&json, pos, len, "\\n", 2))
 				return -1;
 		}
 		else if (buf[i] == '\r') {
-			if (json_append(json, pos, len, "\\r", 2))
+			if (json_append(&json, pos, len, "\\r", 2))
 				return -1;
 		}
 		else if (buf[i] == '"') {
-			if (json_append(json, pos, len, "\\\"", 2))
+			if (json_append(&json, pos, len, "\\\"", 2))
 				return -1;
 		}
 		else if (buf[i] == '\\') {
-			if (json_append(json, pos, len, "\\\\", 2))
+			if (json_append(&json, pos, len, "\\\\", 2))
 				return -1;
 		}
 		else {
-			if (json_append(json, pos, len, buf+i, 1))
+			if (json_append(&json, pos, len, buf+i, 1))
 				return -1;
 		}
 	}
@@ -321,7 +321,7 @@ int64_t vpn_ws_ctrl_json(int queue, vpn_ws_peer *peer) {
 	char *json = vpn_ws_malloc(json_len);
 	if (!json)
 		return -1;
-	if (json_append(json, &json_pos, &json_len, HTTP_RESPONSE_JSON, sizeof(HTTP_RESPONSE_JSON)-1)) goto end;
+	if (json_append(&json, &json_pos, &json_len, HTTP_RESPONSE_JSON, sizeof(HTTP_RESPONSE_JSON)-1)) goto end;
 
 	uint16_t query_string_len = 0;
 	char *query_string = vpn_ws_peer_get_var(peer, "QUERY_STRING", 12, &query_string_len);
@@ -334,7 +334,7 @@ int64_t vpn_ws_ctrl_json(int queue, vpn_ws_peer *peer) {
 				json[9] = '4';
 				json[10] = '0';
 				json[11] = '4';
-				if (json_append(json, &json_pos, &json_len, "{\"status\":\"not found\"}", 22)) goto end;	
+				if (json_append(&json, &json_pos, &json_len, "{\"status\":\"not found\"}", 22)) goto end;
 				goto commit;
 			}
 			vpn_ws_peer *b_peer = vpn_ws_conf.peers[fd];
@@ -342,16 +342,16 @@ int64_t vpn_ws_ctrl_json(int queue, vpn_ws_peer *peer) {
 				json[9] = '4';
 				json[10] = '0';
 				json[11] = '4';
-				if (json_append(json, &json_pos, &json_len, "{\"status\":\"not found\"}", 22)) goto end;	
+				if (json_append(&json, &json_pos, &json_len, "{\"status\":\"not found\"}", 22)) goto end;
 				goto commit;
 			}
 			vpn_ws_peer_destroy(b_peer);
-			if (json_append(json, &json_pos, &json_len, "{\"status\":\"ok\"}", 15)) goto end;
+			if (json_append(&json, &json_pos, &json_len, "{\"status\":\"ok\"}", 15)) goto end;
 			goto commit;
 		}
 	}
 
-	if (json_append(json, &json_pos, &json_len, "{\"status\":\"ok\",\"peers\":[", 24)) goto end;
+	if (json_append(&json, &json_pos, &json_len, "{\"status\":\"ok\",\"peers\":[", 24)) goto end;
 
 	uint8_t found = 0;
 	for(int64_t i = 0; i < vpn_ws_conf.peers_n; i++) {
@@ -362,59 +362,59 @@ int64_t vpn_ws_ctrl_json(int queue, vpn_ws_peer *peer) {
 
 		found = 1;
 
-		if (json_append(json, &json_pos, &json_len, "{\"id\":", 6)) goto end;
-		if (json_append_num(json, &json_pos, &json_len, (int) b_peer->fd)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "{\"id\":", 6)) goto end;
+		if (json_append_num(&json, &json_pos, &json_len, (int) b_peer->fd)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, ",\"MAC\":\"", 8)) goto end;
-		if (json_append_mac(json, &json_pos, &json_len, b_peer->mac)) goto end;
+		if (json_append(&json, &json_pos, &json_len, ",\"MAC\":\"", 8)) goto end;
+		if (json_append_mac(&json, &json_pos, &json_len, b_peer->mac)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "\",\"REMOTE_ADDR\":\"", 17)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "\",\"REMOTE_ADDR\":\"", 17)) goto end;
 		if (json_append_json(json, &json_pos, &json_len, b_peer->remote_addr, b_peer->remote_addr_len)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "\",\"REMOTE_USER\":\"", 17)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "\",\"REMOTE_USER\":\"", 17)) goto end;
 		if (json_append_json(json, &json_pos, &json_len, b_peer->remote_user, b_peer->remote_user_len)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "\",\"DN\":\"", 8)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "\",\"DN\":\"", 8)) goto end;
 		if (json_append_json(json, &json_pos, &json_len, b_peer->dn, b_peer->dn_len)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "\",\"ts\":\"", 8)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "\",\"ts\":\"", 8)) goto end;
 		if (json_append_json(json, &json_pos, &json_len, ctime(&b_peer->t), 24)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "\",\"bridge\":", 11)) goto end;
-		if (json_append_num(json, &json_pos, &json_len, b_peer->bridge)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "\",\"bridge\":", 11)) goto end;
+		if (json_append_num(&json, &json_pos, &json_len, b_peer->bridge)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, ",\"macs\":[", 9)) goto end; 
+		if (json_append(&json, &json_pos, &json_len, ",\"macs\":[", 9)) goto end;
 
 		vpn_ws_mac *macs = b_peer->macs;
 		while(macs) {
-			if (json_append(json, &json_pos, &json_len, "\"",1)) goto end;
-			if (json_append_mac(json, &json_pos, &json_len, macs->mac)) goto end;
+			if (json_append(&json, &json_pos, &json_len, "\"",1)) goto end;
+			if (json_append_mac(&json, &json_pos, &json_len, macs->mac)) goto end;
 			if (macs->next) {
-				if (json_append(json, &json_pos, &json_len, "\",",2)) goto end;
+				if (json_append(&json, &json_pos, &json_len, "\",",2)) goto end;
 			}
 			else {
-				if (json_append(json, &json_pos, &json_len, "\"",1)) goto end;
+				if (json_append(&json, &json_pos, &json_len, "\"",1)) goto end;
 			}
 			macs = macs->next;
 		}
 
-		if (json_append(json, &json_pos, &json_len, "],\"unix\":", 9)) goto end;
-		if (json_append_num(json, &json_pos, &json_len, b_peer->t)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "],\"unix\":", 9)) goto end;
+		if (json_append_num(&json, &json_pos, &json_len, b_peer->t)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, ",\"tx\":", 6)) goto end;
-		if (json_append_num(json, &json_pos, &json_len, b_peer->tx)) goto end;
+		if (json_append(&json, &json_pos, &json_len, ",\"tx\":", 6)) goto end;
+		if (json_append_num(&json, &json_pos, &json_len, b_peer->tx)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, ",\"rx\":", 6)) goto end;
-		if (json_append_num(json, &json_pos, &json_len, b_peer->rx)) goto end;
+		if (json_append(&json, &json_pos, &json_len, ",\"rx\":", 6)) goto end;
+		if (json_append_num(&json, &json_pos, &json_len, b_peer->rx)) goto end;
 
-		if (json_append(json, &json_pos, &json_len, "},", 2)) goto end;
+		if (json_append(&json, &json_pos, &json_len, "},", 2)) goto end;
 	}
 
 	// remove last comma
 	if (found)
 		json_pos--;
 
-	if (json_append(json, &json_pos, &json_len, "]}", 2)) goto end;
+	if (json_append(&json, &json_pos, &json_len, "]}", 2)) goto end;
 
 commit:
 	// send the response
