@@ -50,5 +50,5 @@ clean:
 src/config-event.h:
 	echo "#undef HAVE_EPOLL" > src/config-event.h
 	echo "#undef HAVE_KQUEUE" >> src/config-event.h
-	$(CC) $(CFLAGS) -c -o config/epoll.o config/epoll.c >/dev/null 2>&1 && echo "#define HAVE_EPOLL 1" >> src/config-event.h || exit 0
-	$(CC) $(CFLAGS) -c -o config/kqueue.o config/kqueue.c >/dev/null 2>&1 && echo "#define HAVE_KQUEUE 1" >> src/config-event.h || exit 0
+	$(CC) $(CFLAGS) -c -o config/epoll.o config/epoll.c >/dev/null 2>&1 && printf "#define HAVE_EPOLL 1\n#define HAVE_KQUEUE 0\n" >> src/config-event.h || exit 0
+	$(CC) $(CFLAGS) -c -o config/kqueue.o config/kqueue.c >/dev/null 2>&1 && echo "#define HAVE_KQUEUE 1\n#define HAVE_EPOLL 0" >> src/config-event.h || exit 0
