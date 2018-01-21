@@ -19,33 +19,33 @@ else
 	endif
 endif
 
-all: vpn-ws vpn-ws-client
+all: vpn443 vpn443-client
 
 src/event.c: src/config-event.h
 
 
-src/%.o: src/%.c src/vpn-ws.h
+src/%.o: src/%.c src/vpn443.h
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -c -o $@ $<
 
-vpn-ws: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn-ws $(OBJECTS) $(SERVER_LIBS)
+vpn443: $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn443 $(OBJECTS) $(SERVER_LIBS)
 
-vpn-ws-static: $(OBJECTS)
-	$(CC) -static $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn-ws $(OBJECTS) $(SERVER_LIBS)
+vpn443-static: $(OBJECTS)
+	$(CC) -static $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn443 $(OBJECTS) $(SERVER_LIBS)
 
-vpn-ws-client: src/client.o src/ssl.o $(SHARED_OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn-ws-client src/client.o src/ssl.o $(SHARED_OBJECTS) $(LIBS)
+vpn443-client: src/client.o src/ssl.o $(SHARED_OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LOCAL_CFLAGS) -o vpn443-client src/client.o src/ssl.o $(SHARED_OBJECTS) $(LIBS)
 
-linux-tarball: vpn-ws-static
-	tar zcvf vpn-ws-$(VERSION)-linux-$(shell uname -m).tar.gz vpn-ws
+linux-tarball: vpn443-static
+	tar zcvf vpn443-$(VERSION)-linux-$(shell uname -m).tar.gz vpn443
 
-osxpkg: vpn-ws vpn-ws-client
+osxpkg: vpn443 vpn443-client
 	mkdir -p dist/usr/bin
-	cp vpn-ws vpn-ws-client dist/usr/bin
-	pkgbuild --root dist --identifier it.unbit.vpn-ws vpn-ws-$(VERSION)-osx.pkg
+	cp vpn443 vpn443-client dist/usr/bin
+	pkgbuild --root dist --identifier it.unbit.vpn443 vpn443-$(VERSION)-osx.pkg
 
 clean:
-	rm -rf src/*.o vpn-ws vpn-ws-client configure/*.o src/config-event.h
+	rm -rf src/*.o vpn443 vpn443-client configure/*.o src/config-event.h
 
 src/config-event.h:
 	echo "#undef HAVE_EPOLL" > src/config-event.h

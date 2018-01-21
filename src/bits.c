@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 uint16_t vpn_ws_be16(uint8_t *buf) {
 	uint16_t *src = (uint16_t *) buf;

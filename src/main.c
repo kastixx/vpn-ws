@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 static struct option vpn_ws_options[] = {
 	{"tuntap", required_argument, NULL, 1 },

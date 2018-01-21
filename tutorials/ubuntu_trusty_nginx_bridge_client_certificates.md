@@ -1,11 +1,11 @@
-Building a vpn-ws bridge server with client-certificates authentication on Ubuntu Trusty
+Building a vpn443 bridge server with client-certificates authentication on Ubuntu Trusty
 ========================================================================================
 
 We have a lan on the subnet 192.168.173.0/24 and we want to allow VPN access from the internet.
 
 The lan has a DHCP server.
 
-One node of the lan (192.168.173.17) will be the vpn-ws server (the gateway of the lan, with ip 192.168.173.1, has to be configured for allowing access to its
+One node of the lan (192.168.173.17) will be the vpn443 server (the gateway of the lan, with ip 192.168.173.1, has to be configured for allowing access to its
 https port from the world) 
 
 Clients connecting to the VPN get a 192.168.173.0/24 address from the DHCP server of the lan.
@@ -18,15 +18,15 @@ Ubuntu 14.04 (32 or 64 bit) on the vn-ws server
 Installing packages
 ===================
 
-We are going to install packages on the system that will run the vpn-ws/nginx server
+We are going to install packages on the system that will run the vpn443/nginx server
 
-You need only nginx and bridge-utils (we are going to use static binaries for vpn-ws)
+You need only nginx and bridge-utils (we are going to use static binaries for vpn443)
 
 ```sh
 sudo apt-get install nginx bridge-utils
 ```
 
-Now download a vpn-ws linux binary (32 or 64 bit) from https://github.com/unbit/vpn-ws#binary-packages and place it in /usr/local/bin
+Now download a vpn443 linux binary (32 or 64 bit) from https://github.com/unbit/vpn-ws#binary-packages and place it in /usr/local/bin
 
 Network configuration
 =====================
@@ -126,28 +126,28 @@ adapt ssl_certificate, ssl_certificate_key and ssl_client_certificate to your pa
 
 As yo ucan see we have added a /admin location for allowing access to the json control interface from ip 192.168.173.30 (change it to the ip allowed to administer the vpn)
 
-Starting vpn-ws on boot
+Starting vpn443 on boot
 =======================
 
 Ubuntu trusty is upstart based, so we are going to write a config for it:
 
 ```
-# vpn-ws script
+# vpn443 script
 
-description "vpn-ws"
+description "vpn443"
 start on runlevel [2345]
 stop on runlevel [06]
 
-exec /usr/local/bin/vpn-ws --uid www-data --gid www-data --tuntap vpn0 --bridge --exec "brctl addif br0 vpn0" /run/vpn.sock >>/var/log/vpn-ws.log 2>&1
+exec /usr/local/bin/vpn443 --uid www-data --gid www-data --tuntap vpn0 --bridge --exec "brctl addif br0 vpn0" /run/vpn.sock >>/var/log/vpn-ws.log 2>&1
 ```
 
-save it as /etc/init/vpn-ws.conf and run
+save it as /etc/init/vpn443.conf and run
 
 ```sh
-start vpn-ws
+start vpn443
 ```
 
-now check nginx logs (and /var/log/vpn-ws.log) to ensure it can connect
+now check nginx logs (and /var/log/vpn443.log) to ensure it can connect
 
 Testing a client
 ================
@@ -155,7 +155,7 @@ Testing a client
 We are going to use a linux client from an external network (ensure your lan gateway forward requests to port 8443 to 192.168.173.17:443)
 
 ```sh
-vpn-ws-client --key client.key --crt client.crt --exec "dhclient vpn1 &" vpn1 wss://server:8443/vpn
+vpn443-client --key client.key --crt client.crt --exec "dhclient vpn1 &" vpn1 wss://server:8443/vpn
 ```
 
 be sure the dhclient command is followed by & otherwise it will block the whole client

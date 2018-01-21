@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 vpn_ws_fd vpn_ws_bind_ipv6(char *name) {
 	struct sockaddr_in6 sin6;

@@ -34,7 +34,7 @@
  * implemented by Jun-ichiro itojun Itoh <itojun@itojun.org>
  */
 
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 /* constant table */
 static uint32_t SHA1_K[] = { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 };

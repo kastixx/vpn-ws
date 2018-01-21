@@ -1,7 +1,9 @@
-vpn-ws
+vpn443
 ======
 
 A VPN system over websockets
+
+A fork of `vpn-ws` with no Windows support, and targetting libressl.
 
 This is the client/server implementation of a layer-2 software switch able
 to route packets over websockets connections.
@@ -9,6 +11,16 @@ to route packets over websockets connections.
 The daemon is meant to be run behind nginx, apache, the uWSGI http router or
 a HTTP/HTTPS proxy able to speak the uwsgi protocol and to manage websockets
 connections
+
+Why LibreSSL?
+=============
+
+I am targeting three platforms.
+- Void Linux
+- OpenBSD
+- Mac OS X
+
+All of these platforms use LibreSSL, and the libssl API is famously irritable.
 
 How it works
 ============
@@ -41,7 +53,7 @@ easy debugging.
 Virtualhosting
 ==============
 
-A vpn-ws client is required to send the Host header during the handshake and
+A vpn443 client is required to send the Host header during the handshake and
 "should" support SNI. In this way virtualhosting can be easily managed by
 the proxy server.
 
@@ -62,38 +74,25 @@ make
 ```
 
 after having cloned the repository. If all goes well you will end with a
-binary named vpn-ws (the server) and another named vpn-ws-client (the client)
+binary named vpn443 (the server) and another named vpn443-client (the client)
 
 You can eventually build server or client selectively with
 ```sh
-make vpn-ws
-make vpn-ws-client
+make vpn443
+make vpn443-client
 ```
 
 You can build a static binary version too of the server (where supported) with:
 
 ```sh
-make vpn-ws-static
+make vpn443-static
 ```
-the resulting binary (vpn-ws) will have no library dependancies.
+the resulting binary (vpn443) will have no library dependancies.
 
 Binary packages
 ===============
 
-updated to [20141121]
-
-* linux x86_64 static server
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-0.2-linux-x86_64.tar.gz)
-* linux i386 static server
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-0.2-linux-i386.tar.gz)
-* linux raspberrypi (raspbian)
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-0.2-linux-armv6l.tar.gz)
-* freebsd x86_64 static server
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-0.2-freebsd-amd64.tar.gz)
-* osx universal binary client and server
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-0.2-osx.pkg)
-* windows client
-(https://github.com/unbit/vpn-ws/releases/download/v0.2/vpn-ws-client.exe)
+None right now
 
 Running the server
 ==================
@@ -102,7 +101,7 @@ by default the server binary takes a single argument, the name of the socket
 to bind (the one to which the proxy will connect to):
 
 ```sh
-./vpn-ws /run/vpn.sock
+./vpn443 /run/vpn.sock
 ```
 
 will bind to /run/vpn.sock
@@ -119,7 +118,7 @@ phase. HTTPS + basicauth is strongly suggested, but best setup would be HTTPS
 but please, do not do it, unless for testing ;)
 
 You need to choose the location for which nginx will forward requests to
-the vpn-ws server:
+the vpn443 server:
 
 (we use /vpn)
 
@@ -146,11 +145,11 @@ use the htpasswd tool to generate them)
 The Official Client
 ===================
 
-The official client (vpn-ws-client) is a command line tool (written in
+The official client (vpn443-client) is a command line tool (written in
 C). Its syntax is pretty simple:
 
 ```sh
-vpn-ws-client <tap> <server>
+vpn443-client <tap> <server>
 ```
 
 where 'tap' is a (platform-dependent) tap device path, and 'server' is the
@@ -169,20 +168,20 @@ interface [TODO: drop privileges after having created the interface).
 On linux (you can name devices as you want):
 
 ```sh
-./vpn-ws-client vpn-ws0 wss://foo:bar@example.com/vpn
+./vpn443-client vpn4430 wss://foo:bar@example.com/vpn
 ```
 
 On OSX (you have a fixed number of /dev/tapN devices you can use)
 
 ```sh
-./vpn-ws-client /dev/tap0 wss://foo:bar@example.com/vpn
+./vpn443-client /dev/tap0 wss://foo:bar@example.com/vpn
 ```
 
 On FreeBSD (you need to create the interface to access the device):
 
 ```sh
 ifconfig tap0 create
-./vpn-ws-client /dev/tap0 wss://foo:bar@example.com/vpn
+./vpn443-client /dev/tap0 wss://foo:bar@example.com/vpn
 ```
 
 Once your client is connected you can assign it an ip address (or make a
@@ -197,13 +196,13 @@ Server tap and Bridge mode
 By default the server acts a simple switch, routing packets to connected
 peers based on the advertised mac address.
 
-In addition to this mode you can give the vpn-ws server a virtual device too
+In addition to this mode you can give the vpn443 server a virtual device too
 (with its mac address) to build complex setup.
 
-To add a device to the vpn-ws server:
+To add a device to the vpn443 server:
 
 ```sh
-./vpn-ws --tuntap vpn0 /run/vpn.sock
+./vpn443 --tuntap vpn0 /run/vpn.sock
 ```
 
 the argument of tuntap is platform dependent (the same rules of clients apply).
@@ -217,7 +216,7 @@ forward packets without a matching connected peers to the tuntap device. This
 is the bridge mode. To enable it add --bridge to the server command line:
 
 ```sh
-./vpn-ws --bridge --tuntap vpn0 /run/vpn.sock
+./vpn443 --bridge --tuntap vpn0 /run/vpn.sock
 ```
 
 Now you can add 'vpn0' to a pre-existing network bridge:
@@ -249,7 +248,7 @@ physical interface with a different mac address):
 ip link add link eth0 name virt0 type macvlan
 ifconfig virt0 0.0.0.0 promisc up
 brctl addif br0 virt0
-# add vpn-ws tuntap device to the bridge
+# add vpn443 tuntap device to the bridge
 ifconfig vpn17 0.0.0.0 promisc up
 brctl addif br0 vpn17
 ```
@@ -264,19 +263,19 @@ tuntap device is created.
 As an example you may want to call ifconfig upon connection:
 
 ```sh
-vpn-ws-client --exec "ifconfig vpn17 192.168.173.17 netmask 255.255.255.0" vpn17 wss://example.com/
+vpn443-client --exec "ifconfig vpn17 192.168.173.17 netmask 255.255.255.0" vpn17 wss://example.com/
 ```
 
 or to add your server to a tuntap to an already existent bridge:
 
 ```sh
-vpn-ws --exec "brctl addif br0 vpn0" --bridge --tuntap vpn0 /run/vpn.sock
+vpn443 --exec "brctl addif br0 vpn0" --bridge --tuntap vpn0 /run/vpn.sock
 ```
 
 You can chain multiple commands with ;
 
 ```sh
-vpn-ws --exec "brctl addif br0 vpn0; ifconfig br0 192.168.173.30" --bridge --tuntap vpn0 /run/vpn.sock
+vpn443 --exec "brctl addif br0 vpn0; ifconfig br0 192.168.173.30" --bridge --tuntap vpn0 /run/vpn.sock
 ```
 
 Required permissions
@@ -292,7 +291,7 @@ the way you can drop privileges soon after the device is created (and the
 --exec option is eventually executed) with the --uid ang --gid options:
 
 ```sh
-vpn-ws --tuntap vpn0 --uid www-data --gid www-data /run/vpn.sock
+vpn443 --tuntap vpn0 --uid www-data --gid www-data /run/vpn.sock
 ```
 
 The client instead requires privileged operations (future releases may allow
@@ -307,7 +306,7 @@ On OpenSSL-based clients (Linux, FreeBSD) you need a key file and a certificate
 in pem format:
 
 ```sh
-vpn-ws-client --key foobar.key --crt foobar.crt vpn0 wss://example.com/vpn
+vpn443-client --key foobar.key --crt foobar.crt vpn0 wss://example.com/vpn
 ```
 
 On OSX you need to import a .p12 file (or whatever format it support) to the
@@ -315,7 +314,7 @@ login keychain, then you need to specify the name of the certificate/identity
 via the --crt option (no --key is involved):
 
 ```sh
-vpn-ws-client --crt "My certificate" /dev/tap0 wss://example.com/vpn
+vpn443-client --crt "My certificate" /dev/tap0 wss://example.com/vpn
 ```
 
 The JSON Control interface
@@ -323,7 +322,7 @@ The JSON Control interface
 
 The uwsgi protocol supports a raw form of channel selections using 2 bytes
 of its header. Thos bytes are called "modifiers". By setting the modifier1
-to '1' (by default modifiers are set to 0) you will tell the vpn-ws server
+to '1' (by default modifiers are set to 0) you will tell the vpn443 server
 to show the JSON control interface. This is a simple way for monitoring the
 server and for kicking out clients.
 
@@ -405,7 +404,7 @@ to the server command line
 Tutorials
 =========
 
-https://github.com/unbit/vpn-ws/blob/master/tutorials/ubuntu_trusty_nginx_bridge_client_certificates.md
+https://github.com/Vaelatern/vpn443/blob/master/tutorials/ubuntu_trusty_nginx_bridge_client_certificates.md
 
 Status/TODO/Working on
 ======================

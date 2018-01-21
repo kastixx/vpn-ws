@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 /*
    returns 0 if we require more data
@@ -124,7 +124,7 @@ int64_t vpn_ws_handshake(int queue, vpn_ws_peer *peer) {
 	if (!ws_key)
 		return -1;
 
-	// check if the X-vpn-ws-MAC header is available
+	// check if the X-vpn443-MAC header is available
 	uint16_t ws_mac_len = 0;
 	char *ws_mac = vpn_ws_peer_get_var(peer, "HTTP_X_VPN_WS_MAC", 17, &ws_mac_len);
 	if (ws_mac) {

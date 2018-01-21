@@ -1,4 +1,4 @@
 *.o
 src/config-*.h
-/vpn-ws
-/vpn-ws-client
+/vpn443
+/vpn443-client

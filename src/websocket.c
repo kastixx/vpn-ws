@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 int64_t vpn_ws_websocket_parse(vpn_ws_peer *peer, uint16_t *ws_header) {
 	if (peer->pos < 2) return 0;

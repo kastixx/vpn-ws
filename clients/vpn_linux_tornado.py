@@ -5,7 +5,7 @@ import sys
 
 io_loop = ioloop.IOLoop.instance()
 
-tap = TunTapDevice(flags=IFF_TAP|IFF_NO_PI, name='vpn-ws%d')
+tap = TunTapDevice(flags=IFF_TAP|IFF_NO_PI, name='vpn443%d')
 
 class VpnWSClient(TornadoWebSocketClient):
 

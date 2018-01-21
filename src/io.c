@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 int vpn_ws_continue_write(vpn_ws_peer *peer) {
 	vpn_ws_send(peer->fd, peer->write_buf, peer->write_pos, wlen);

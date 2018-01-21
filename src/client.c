@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 #include <netdb.h>
 
@@ -256,7 +256,7 @@ int vpn_ws_connect(vpn_ws_peer *peer, char *name) {
 	uint16_t key_len = vpn_ws_base64_encode(secret, 10, key);
 	// now build and send the request
 	char buf[8192];
-	int ret = snprintf(buf, 8192, "GET /%s HTTP/1.1\r\nHost: %s%s%s\r\n%sUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %.*s\r\nX-vpn-ws-MAC: %02x:%02x:%02x:%02x:%02x:%02x%s\r\n\r\n",
+	int ret = snprintf(buf, 8192, "GET /%s HTTP/1.1\r\nHost: %s%s%s\r\n%sUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %.*s\r\nX-vpn443-MAC: %02x:%02x:%02x:%02x:%02x:%02x%s\r\n\r\n",
 		path ? path : "",
 		domain,
 		port_str ? ":" : "",
@@ -270,7 +270,7 @@ int vpn_ws_connect(vpn_ws_peer *peer, char *name) {
 		mac[3],	
 		mac[4],
 		mac[5],
-		vpn_ws_conf.bridge ? "\r\nX-vpn-ws-bridge: on" : ""
+		vpn_ws_conf.bridge ? "\r\nX-vpn443-bridge: on" : ""
 	);
 
 	if (auth) free(auth);

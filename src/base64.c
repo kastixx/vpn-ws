@@ -1,4 +1,4 @@
-#include "vpn-ws.h"
+#include "vpn443.h"
 
 // fast base64 encoding based on nginx and uWSGI
 // we use it only for sha1 encoding, so we need at most 32 bytes output
