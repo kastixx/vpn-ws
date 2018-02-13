@@ -62,7 +62,7 @@ Installation from source
 
 Note: see below for binary packages
 
-You need gnu make and a c compiler (clang, gcc, and mingw-gcc are supported).
+You need gnu make and a c compiler (clang and gcc are supported).
 
 The server has no external dependancies, while the client requires openssl
 (except for OSX where the native ssl/tls implementation is used)
