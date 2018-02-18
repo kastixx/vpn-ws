@@ -1,5 +1,7 @@
 #include "vpn443.h"
 
+#include "vpn443-random.h"
+
 #include <netdb.h>
 
 static struct option vpn_ws_options[] = {
@@ -248,11 +250,8 @@ int vpn_ws_connect(vpn_ws_peer *peer, char *name) {
 	uint8_t key[32];
 	uint8_t secret[10];
 	int i;
-#ifdef __OpenBSD__
-	for(i=0;i<10;i++) secret[i] = arc4random();
-#else
-	for(i=0;i<10;i++) secret[i] = rand();
-#endif
+	for(i=0;i<10;i++)
+		secret[i] = vpn443_rand();
 	uint16_t key_len = vpn_ws_base64_encode(secret, 10, key);
 	// now build and send the request
 	char buf[8192];
@@ -397,17 +396,10 @@ reconnect:
 	}
 
 	uint8_t mask[4];
-#ifdef __OpenBSD__
-	mask[0] = arc4random();
-	mask[1] = arc4random();
-	mask[2] = arc4random();
-	mask[3] = arc4random();
-#else
-	mask[0] = rand();
-	mask[1] = rand();
-	mask[2] = rand();
-	mask[3] = rand();
-#endif
+	mask[0] = vpn443_rand();
+	mask[1] = vpn443_rand();
+	mask[2] = vpn443_rand();
+	mask[3] = vpn443_rand();
 
 	fd_set rset;
 	// find the highest fd

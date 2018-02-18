@@ -1,4 +1,5 @@
 *.o
 src/config-*.h
+config/libs
 /vpn443
 /vpn443-client
