@@ -13,7 +13,7 @@ ifeq ($(OS), Darwin)
 	CFLAGS+=-arch i386 -arch x86_64
 endif
 
-LIBS+=-ltls $$(config/libs)
+LIBS+=-lssl -lcrypto $$(config/libs)
 
 all: vpn443 vpn443-client
 
