@@ -199,7 +199,11 @@ static SSL_CTX *ssl_ctx = NULL;
 
 void *vpn_ws_ssl_handshake(vpn_ws_peer *peer, char *sni, char *key, char *crt) {
 	if (!ssl_initialized) {
-		OPENSSL_config(NULL);
+		if(CONF_modules_load_file(NULL, NULL, CONF_MFLAGS_IGNORE_MISSING_FILE) <= 0) {
+			vpn_ws_log("vpn_ws_ssl_handshake(): failed to initialize SSL library\n");
+			return NULL;
+		}
+
         	SSL_library_init();
         	SSL_load_error_strings();
         	OpenSSL_add_all_algorithms();
