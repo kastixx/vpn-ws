@@ -309,7 +309,7 @@ void usage(const char* program_path) {
 	vpn_ws_log("syntax: %s [options] <tap> <ws>\n", program_path);
 	fprintf(stdout, "\n\toptions:\n\n");
 	fprintf(stdout, "\t--exec <cmd>\t\texecute the specified command soon after the tuntap device is created\n");
-	fprintf(stdout, "\t--cert <file-path>\t\tspecify client certificate file\n");
+	fprintf(stdout, "\t--crt <file-path>\t\tspecify client certificate file\n");
 	fprintf(stdout, "\t--key <file-path>\t\tspecify client certificate private key file\n");
 	fprintf(stdout, "\t--no-verify\t\tdo not verify server certificate\n");
 	fprintf(stdout, "\t--bridge\t\tenable bridge mode\n");
