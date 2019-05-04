@@ -10,6 +10,7 @@ static struct option vpn_ws_options[] = {
         {"crt", required_argument, NULL, 3 },
         {"no-verify", no_argument, &vpn_ws_conf.ssl_no_verify, 1 },
 	{"bridge", no_argument, &vpn_ws_conf.bridge, 1 },
+	{"help", no_argument, NULL, '?' },
         {NULL, 0, 0, 0}
 };
 
@@ -304,6 +305,17 @@ int vpn_ws_connect(vpn_ws_peer *peer, char *name) {
 	return 0;
 }
 
+void usage(const char* program_path) {
+	vpn_ws_log("syntax: %s [options] <tap> <ws>\n", program_path);
+	fprintf(stdout, "\n\toptions:\n\n");
+	fprintf(stdout, "\t--exec <cmd>\t\texecute the specified command soon after the tuntap device is created\n");
+	fprintf(stdout, "\t--cert <file-path>\t\tspecify client certificate file\n");
+	fprintf(stdout, "\t--key <file-path>\t\tspecify client certificate private key file\n");
+	fprintf(stdout, "\t--no-verify\t\tdo not verify server certificate\n");
+	fprintf(stdout, "\t--bridge\t\tenable bridge mode\n");
+	fprintf(stdout, "\t--help\t\t\tthis help\n");
+}
+
 int main(int argc, char *argv[]) {
 
 	sigset_t sset;
@@ -328,15 +340,18 @@ int main(int argc, char *argv[]) {
                                 vpn_ws_conf.ssl_crt = optarg;
                                 break;
                         case '?':
+                                usage(argv[0]);
+                                vpn_ws_exit(0);
                                 break;
                         default:
                                 vpn_ws_log("error parsing arguments\n");
+                                usage(argv[0]);
                                 vpn_ws_exit(1);
                 }
         }
 
 	if (optind + 1 >= argc) {
-		vpn_ws_log("syntax: %s <tap> <ws>\n", argv[0]);
+		usage(argv[0]);
 		vpn_ws_exit(1);
 	}
 
