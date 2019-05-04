@@ -54,12 +54,12 @@ src/config-event.h:
 	echo "#undef HAVE_EPOLL" > src/config-event.h
 	echo "#undef HAVE_KQUEUE" >> src/config-event.h
 	$(CC) $(CFLAGS) -c -o config/epoll.o config/epoll.c >/dev/null 2>&1 && printf "#define HAVE_EPOLL 1\n#define HAVE_KQUEUE 0\n" >> src/config-event.h || exit 0
-	$(CC) $(CFLAGS) -c -o config/kqueue.o config/kqueue.c >/dev/null 2>&1 && echo "#define HAVE_KQUEUE 1\n#define HAVE_EPOLL 0" >> src/config-event.h || exit 0
+	$(CC) $(CFLAGS) -c -o config/kqueue.o config/kqueue.c >/dev/null 2>&1 && printf "#define HAVE_KQUEUE 1\n#define HAVE_EPOLL 0\n" >> src/config-event.h || exit 0
 	printf "#if !defined(HAVE_EPOLL) && !defined(HAVE_KQUEUE)\n#error \"Need either epoll or kqueue\"\n#endif\n" >> src/config-event.h
 
 src/config-arc4random.h:
 	echo "#undef HAVE_ARC4RANDOM_NATIVE" > src/config-arc4random.h
 	echo "#undef HAVE_ARC4RANDOM_LIBBSD" >> src/config-arc4random.h
 	$(CC) $(CFLAGS) -c -o config/arc4random_native.o config/arc4random_native.c >/dev/null 2>&1 && printf "#define HAVE_ARC4RANDOM_NATIVE 1\n#define HAVE_ARC4RANDOM_LIBBSD 0\n" >> src/config-arc4random.h || exit 0
-	$(CC) $(CFLAGS) -c -o config/arc4random_libbsd.o config/arc4random_libbsd.c >/dev/null 2>&1 && echo "#define HAVE_ARC4RANDOM_LIBBSD 1\n#define HAVE_ARC4RANDOM_NATIVE 0" >> src/config-arc4random.h || exit 0
+	$(CC) $(CFLAGS) -c -o config/arc4random_libbsd.o config/arc4random_libbsd.c >/dev/null 2>&1 && printf "#define HAVE_ARC4RANDOM_LIBBSD 1\n#define HAVE_ARC4RANDOM_NATIVE 0\n" >> src/config-arc4random.h || exit 0
 	printf "#if !defined(HAVE_ARC4RANDOM_NATIVE) && !defined(HAVE_ARC4RANDOM_LIBBSD)\n#error \"Need a source for arc4random\"\n#endif\n" >> src/config-arc4random.h
